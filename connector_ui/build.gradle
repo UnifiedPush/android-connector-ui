@@ -1,0 +1,73 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+
+    // for jitpack
+    id 'maven-publish'
+}
+
+android {
+    compileSdk 34
+
+    compileOptions{
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+        // languageVersion provides source compatibility with the specified version of Kotlin
+        languageVersion = '1.7'
+    }
+
+    defaultConfig {
+        minSdk 16
+        targetSdk 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig = false
+    }
+
+    namespace "org.unifiedpush.android.connector.ui"
+}
+
+dependencies {
+    api("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+}
+
+// jitpack build
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = 'org.unifiedpush.android'
+                artifactId = 'connector-ui'
+                version = '1.0.0'
+            }
+        }
+    }
+}
