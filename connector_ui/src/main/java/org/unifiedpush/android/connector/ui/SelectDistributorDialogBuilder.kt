@@ -28,6 +28,37 @@ class SelectDistributorDialogBuilder(
 ) {
     var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
 
+    open fun onNoDistributorFound() {
+        if (!this.getNoDistributorAck()) {
+            val builder = AlertDialog.Builder(context).apply {
+                setTitle(registrationDialogContent.noDistributorDialog.title)
+                val msg =
+                    SpannableString(registrationDialogContent.noDistributorDialog.message)
+                Linkify.addLinks(msg, Linkify.WEB_URLS)
+                setMessage(msg)
+                setPositiveButton(registrationDialogContent.noDistributorDialog.okButton) { _, _ -> }
+                setNegativeButton(registrationDialogContent.noDistributorDialog.ignoreButton) { _, _ ->
+                    this@SelectDistributorDialogBuilder.setNoDistributorAck(true)
+                }
+            }
+            val dialog = builder.create()
+            dialog.setOnShowListener {
+                dialog.findViewById<TextView>(android.R.id.message)?.let {
+                    it.movementMethod = LinkMovementMethod.getInstance()
+                }
+            }
+            dialog.show()
+        } else {
+            Log.d(TAG, "User already know there isn't any distributor")
+        }
+    }
+
+    open fun onDistributorSelected(distributor: String) {
+        Log.d(TAG, "saving: $distributor")
+        unifiedPushFunctions.saveDistributor(distributor)
+        instances.forEach { unifiedPushFunctions.registerApp(it) }
+    }
+
     fun show() {
         unifiedPushFunctions.getAckDistributor()?.let {
             instances.forEach { unifiedPushFunctions.registerApp(it) }
@@ -35,68 +66,41 @@ class SelectDistributorDialogBuilder(
         }
         val distributors = unifiedPushFunctions.getDistributors()
         when (distributors.size) {
-            0 -> {
-                if (!this.getNoDistributorAck()) {
-                    val builder = AlertDialog.Builder(context).apply {
-                        setTitle(registrationDialogContent.noDistributorDialog.title)
-                        val msg =
-                            SpannableString(registrationDialogContent.noDistributorDialog.message)
-                        Linkify.addLinks(msg, Linkify.WEB_URLS)
-                        setMessage(msg)
-                        setPositiveButton(registrationDialogContent.noDistributorDialog.okButton) { _, _ -> }
-                        setNegativeButton(registrationDialogContent.noDistributorDialog.ignoreButton) { _, _ ->
-                            this@SelectDistributorDialogBuilder.setNoDistributorAck(true)
-                        }
-                    }
-                    val dialog = builder.create()
-                    dialog.setOnShowListener {
-                        dialog.findViewById<TextView>(android.R.id.message)?.let {
-                            it.movementMethod = LinkMovementMethod.getInstance()
-                        }
-                    }
-                    dialog.show()
-                } else {
-                    Log.d(TAG, "User already know there isn't any distributor")
-                }
-            }
-
-            1 -> {
-                unifiedPushFunctions.saveDistributor(distributors.first())
-                instances.forEach { unifiedPushFunctions.registerApp(it) }
-            }
-
+            0 -> onNoDistributorFound()
+            1 -> onDistributorSelected(distributors.first())
             else -> {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(context)
                 builder.setTitle(registrationDialogContent.chooseDialog.title)
 
                 val distributorsArray = distributors.toTypedArray()
-                val distributorsNameArray = distributorsArray.map {
-                    try {
-                        val ai = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            context.packageManager.getApplicationInfo(
-                                it,
-                                PackageManager.ApplicationInfoFlags.of(
-                                    PackageManager.GET_META_DATA.toLong()
-                                )
-                            )
-                        } else {
-                            context.packageManager.getApplicationInfo(it, 0)
-                        }
-                        context.packageManager.getApplicationLabel(ai)
-                    } catch (e: PackageManager.NameNotFoundException) {
-                        it
-                    } as String
+                val distributorsNameArray = distributorsArray.map{
+                    getApplicationName(it)
                 }.toTypedArray()
                 builder.setItems(distributorsNameArray) { _, which ->
-                    val distributor = distributorsArray[which]
-                    unifiedPushFunctions.saveDistributor(distributor)
-                    Log.d(TAG, "saving: $distributor")
-                    instances.forEach { unifiedPushFunctions.registerApp(it) }
+                    onDistributorSelected(distributorsArray[which])
                 }
                 val dialog: AlertDialog = builder.create()
                 dialog.show()
             }
         }
+    }
+
+    private fun getApplicationName(applicationId: String): String {
+        return try {
+            val ai = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getApplicationInfo(
+                    applicationId,
+                    PackageManager.ApplicationInfoFlags.of(
+                        PackageManager.GET_META_DATA.toLong()
+                    )
+                )
+            } else {
+                context.packageManager.getApplicationInfo(applicationId, 0)
+            }
+            context.packageManager.getApplicationLabel(ai)
+        } catch (e: PackageManager.NameNotFoundException) {
+            applicationId
+        } as String
     }
 
     private fun getNoDistributorAck(): Boolean {
