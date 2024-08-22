@@ -1,2 +1,2 @@
-include ':connector'
-rootProject.name = "android-connector"
+include ':connector_ui'
+rootProject.name = "android-connector-ui"
