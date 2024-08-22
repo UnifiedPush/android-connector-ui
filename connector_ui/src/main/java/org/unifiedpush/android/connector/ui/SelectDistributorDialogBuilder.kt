@@ -59,6 +59,21 @@ class SelectDistributorDialogBuilder(
         instances.forEach { unifiedPushFunctions.registerApp(it) }
     }
 
+    open fun onManyDistributorsFound(distributors: List<String>) {
+        val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+        builder.setTitle(registrationDialogContent.chooseDialog.title)
+
+        val distributorsArray = distributors.toTypedArray()
+        val distributorsNameArray = distributorsArray.map{
+            getApplicationName(it)
+        }.toTypedArray()
+        builder.setItems(distributorsNameArray) { _, which ->
+            onDistributorSelected(distributorsArray[which])
+        }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
     fun show() {
         unifiedPushFunctions.getAckDistributor()?.let {
             instances.forEach { unifiedPushFunctions.registerApp(it) }
@@ -68,20 +83,7 @@ class SelectDistributorDialogBuilder(
         when (distributors.size) {
             0 -> onNoDistributorFound()
             1 -> onDistributorSelected(distributors.first())
-            else -> {
-                val builder: AlertDialog.Builder = AlertDialog.Builder(context)
-                builder.setTitle(registrationDialogContent.chooseDialog.title)
-
-                val distributorsArray = distributors.toTypedArray()
-                val distributorsNameArray = distributorsArray.map{
-                    getApplicationName(it)
-                }.toTypedArray()
-                builder.setItems(distributorsNameArray) { _, which ->
-                    onDistributorSelected(distributorsArray[which])
-                }
-                val dialog: AlertDialog = builder.create()
-                dialog.show()
-            }
+            else -> onManyDistributorsFound(distributors)
         }
     }
 
