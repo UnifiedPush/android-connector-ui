@@ -21,7 +21,7 @@ interface UnifiedPushFunctions {
     fun saveDistributor(distributor: String)
 }
 
-class SelectDistributorDialogBuilder(
+open class SelectDistributorDialogBuilder(
     private val context: Context,
     private val instances: List<String>,
     private val unifiedPushFunctions: UnifiedPushFunctions
