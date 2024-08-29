@@ -50,8 +50,27 @@ android {
 }
 
 dependencies {
-    api("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "androidx.appcompat:appcompat:1.7.0"
+}
+
+
+def releaseGroupId = 'org.unifiedpush.android'
+def releaseArtifactId = 'connector-ui'
+def releaseVersion = '0.1.0'
+
+tasks.register('printArtifactId') {
+    group 'Artifact Info'
+    doLast {
+        println("artifact=$releaseGroupId:$releaseArtifactId")
+    }
+}
+
+tasks.register("printVersion") {
+    group 'Artifact Info'
+    doLast {
+        println("version=$releaseVersion")
+    }
 }
 
 // jitpack build
@@ -64,9 +83,9 @@ afterEvaluate {
                 from components.release
 
                 // You can then customize attributes of the publication as shown below.
-                groupId = 'org.unifiedpush.android'
-                artifactId = 'connector-ui'
-                version = '1.0.0'
+                groupId = releaseGroupId
+                artifactId = releaseArtifactId
+                version = releaseVersion
             }
         }
     }
