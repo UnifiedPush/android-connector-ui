@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 NORMAL=$'\e[0m'
 GREEN=$(tput setaf 2)
