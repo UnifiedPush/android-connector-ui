@@ -7,9 +7,9 @@ This library provides a dialog to let the user pick a distributor and register t
 
 Documentation available at <https://unifiedpush.org>
 
-v1.x.x requires minSdk > 16
+v1.0.x requires minSdk > 16
 
-v2.x.x requires minSdk > 21 and uses androidx library
+v1.1.x requires minSdk > 21 and uses a more recent version of appcompat
 
 ## Usage
 
