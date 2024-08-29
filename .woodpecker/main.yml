@@ -2,7 +2,7 @@ steps:
     check:
         image: runmymind/docker-android-sdk:latest
         when:
-          branch: main
+          branch: [main, "1.0"]
           event: [push, pull_request, manual]
         commands:
           - git clone https://codeberg.org/UnifiedPush/android-example example
