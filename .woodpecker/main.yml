@@ -7,6 +7,7 @@ steps:
         commands:
           - git clone https://codeberg.org/UnifiedPush/android-example example
           - cd ./example/
+          - grep "androidx.appcompat:appcompat:1.6" ../connector_ui/build.gradle || sed -i 's/minSdkVersion 16/minSdkVersion 21/' app/build.gradle
           - sed -i -e '/delToDevUILib/d' -e 's-//toDevUILib//--' app/build.gradle settings.gradle
           - ./gradlew assembleMainFlavor --stacktrace
           - mv app/build/outputs/apk/mainFlavor/debug/app-mainFlavor-debug.apk ../UP-Example-main.apk
