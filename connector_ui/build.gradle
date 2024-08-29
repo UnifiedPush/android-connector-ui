@@ -1,8 +1,6 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-
-    // for jitpack
     id 'maven-publish'
 }
 
@@ -73,12 +71,35 @@ tasks.register("printVersion") {
     }
 }
 
-// jitpack build
 afterEvaluate {
     publishing {
         publications {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
+                pom {
+                    name = "$releaseGroupId:$releaseArtifactId"
+                    description = 'Dialog to select UnifiedPush distributor'
+                    url = 'https://unifiedpush.org/developers/android/'
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'S1m'
+                            email = 'git@sgougeon.fr'
+                            organization = 'UnifiedPush'
+                            organizationUrl = 'https://unifiedpush.org/'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://codeberg.org/UnifiedPush/android-connector-ui.git'
+                        developerConnection = 'scm:git:ssh://codeberg.org:UnifiedPush/android-connector-ui.git'
+                        url = 'https://codeberg.org/UnifiedPush/android-connector-ui'
+                    }
+                }
                 // Applies the component for the release build variant.
                 from components.release
 
