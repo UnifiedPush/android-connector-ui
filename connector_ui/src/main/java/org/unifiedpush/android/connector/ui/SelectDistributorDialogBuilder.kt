@@ -26,7 +26,7 @@ open class SelectDistributorDialogBuilder(
     private val instances: List<String>,
     private val unifiedPushFunctions: UnifiedPushFunctions
 ) {
-    var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
+    open var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
 
     open fun onNoDistributorFound() {
         if (!this.getNoDistributorAck()) {
