@@ -14,6 +14,9 @@ private val TAG = SelectDistributorDialogBuilder::class.simpleName
 private const val PREF_MASTER = "org.unifiedpush.android.connector.ui"
 private const val PREF_MASTER_DISTRIBUTOR_ACK = "distributor_ack"
 
+/**
+ * Interface containing UnifiedPush functions
+ */
 interface UnifiedPushFunctions {
     fun getAckDistributor(): String?
     fun getDistributors(): List<String>
@@ -21,13 +24,26 @@ interface UnifiedPushFunctions {
     fun saveDistributor(distributor: String)
 }
 
+/**
+ * Main dialog builder, use [show][SelectDistributorDialogBuilder.show] to select a distributor and register
+ *
+ * Extend and override functions or attributes if needed.
+ *
+ * @param context Context for fetching resources.
+ * @param instances List of instances to request registration for.
+ * @param unifiedPushFunctions UnifiedPush functions to interact with the distributors.
+ */
 open class SelectDistributorDialogBuilder(
     private val context: Context,
     private val instances: List<String>,
     private val unifiedPushFunctions: UnifiedPushFunctions
 ) {
+    /** Contains content of the different dialogs. */
     open var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
 
+    /**
+     * Called when no distributor are found. By default, it shows a dialog with [RegistrationDialogContent.noDistributorDialog] content.
+     */
     open fun onNoDistributorFound() {
         if (!this.getNoDistributorAck()) {
             val builder = AlertDialog.Builder(context).apply {
@@ -53,12 +69,18 @@ open class SelectDistributorDialogBuilder(
         }
     }
 
+    /**
+     * Called when a distributor is selected. By default, it calls [UnifiedPushFunctions.saveDistributor] then [UnifiedPushFunctions.registerApp] for each instance.
+     */
     open fun onDistributorSelected(distributor: String) {
         Log.d(TAG, "saving: $distributor")
         unifiedPushFunctions.saveDistributor(distributor)
         instances.forEach { unifiedPushFunctions.registerApp(it) }
     }
 
+    /**
+     * Called when many distributors are found. By default, it shows a dialog to ask which distributor to pick with [RegistrationDialogContent.chooseDialog] content.
+     */
     open fun onManyDistributorsFound(distributors: List<String>) {
         val builder: AlertDialog.Builder = AlertDialog.Builder(context)
         builder.setTitle(registrationDialogContent.chooseDialog.title)
@@ -74,6 +96,16 @@ open class SelectDistributorDialogBuilder(
         dialog.show()
     }
 
+    /**
+     * Show a dialog if needed to ask user's distributor and request registration for all instances
+     *
+     * Calling this method for the first time, or if the distributor has been removed:
+     * - If there is no distributor, it will inform the user they need one.
+     * - If there is a single distributor, it will register to it.
+     * - If there are many distributors, it will open a dialog to ask the user which one to use.
+     *
+     * Once a distributor is saved, calling this method will register again to the saved distributor.
+     */
     fun show() {
         unifiedPushFunctions.getAckDistributor()?.let {
             instances.forEach { unifiedPushFunctions.registerApp(it) }

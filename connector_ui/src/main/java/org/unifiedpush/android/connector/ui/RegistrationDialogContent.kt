@@ -2,12 +2,12 @@ package org.unifiedpush.android.connector.ui
 
 import android.content.Context
 
-/** Defines content that can be shown during [UnifiedPush.registerAppWithDialog]. */
+/** Defines content that can be shown during [SelectDistributorDialogBuilder.show]. */
 interface RegistrationDialogContent {
-    /** Content if no distributor is installed. */
+    /** Content for the dialog if no distributor is installed. */
     val noDistributorDialog: NoDistributorDialog
 
-    /** Content if multiple distributors are installed. */
+    /** Content for the dialog if many distributors are installed. */
     val chooseDialog: ChooseDialog
 }
 
@@ -21,7 +21,7 @@ data class DefaultRegistrationDialogContent(val context: Context) : Registration
     override val chooseDialog = DefaultChooseDialog(context)
 }
 
-/** Defines content for the dialog if no distributors are installed. */
+/** Defines content for the dialog if no distributor are installed. */
 interface NoDistributorDialog {
     /** Dialog title. */
     val title: String
