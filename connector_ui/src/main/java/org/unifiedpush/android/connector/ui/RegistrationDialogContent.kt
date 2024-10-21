@@ -2,7 +2,7 @@ package org.unifiedpush.android.connector.ui
 
 import android.content.Context
 
-/** Defines content that can be shown during [SelectDistributorDialogBuilder.show]. */
+/** Defines content that can be shown during [SelectDistributorDialogsBuilder.run]. */
 interface RegistrationDialogContent {
     /** Content for the dialog if no distributor is installed. */
     val noDistributorDialog: NoDistributorDialog

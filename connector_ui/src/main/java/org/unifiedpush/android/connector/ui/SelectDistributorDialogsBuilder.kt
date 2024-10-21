@@ -10,7 +10,7 @@ import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 
-private val TAG = SelectDistributorDialogBuilder::class.simpleName
+private val TAG = SelectDistributorDialogsBuilder::class.simpleName
 private const val PREF_MASTER = "org.unifiedpush.android.connector.ui"
 private const val PREF_MASTER_DISTRIBUTOR_ACK = "distributor_ack"
 
@@ -25,19 +25,28 @@ interface UnifiedPushFunctions {
 }
 
 /**
- * Main dialog builder, use [show][SelectDistributorDialogBuilder.show] to select a distributor and register
+ * Main dialog builder, use [`run`][SelectDistributorDialogsBuilder.run] to select a distributor and register
  *
  * Extend and override functions or attributes if needed.
  *
  * @param context Context for fetching resources.
- * @param instances List of instances to request registration for.
  * @param unifiedPushFunctions UnifiedPush functions to interact with the distributors.
  */
-open class SelectDistributorDialogBuilder(
+open class SelectDistributorDialogsBuilder(
     private val context: Context,
-    private val instances: List<String>,
     private val unifiedPushFunctions: UnifiedPushFunctions
 ) {
+    /** List of instances to request registration for. */
+    open var instances: List<String> = listOf("default")
+    /**
+     * Use saved distributor if available.
+     *
+     * Set to `true` if you wish to re-register your app if it is available.
+     *
+     * Set to `false` if you wish to let the user change their distributor.
+     */
+    open var mayUseCurrent: Boolean = true
+
     /** Contains content of the different dialogs. */
     open var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
 
@@ -54,7 +63,7 @@ open class SelectDistributorDialogBuilder(
                 setMessage(msg)
                 setPositiveButton(registrationDialogContent.noDistributorDialog.okButton) { _, _ -> }
                 setNegativeButton(registrationDialogContent.noDistributorDialog.ignoreButton) { _, _ ->
-                    this@SelectDistributorDialogBuilder.setNoDistributorAck(true)
+                    this@SelectDistributorDialogsBuilder.setNoDistributorAck(true)
                 }
             }
             val dialog = builder.create()
@@ -75,7 +84,7 @@ open class SelectDistributorDialogBuilder(
     open fun onDistributorSelected(distributor: String) {
         Log.d(TAG, "saving: $distributor")
         unifiedPushFunctions.saveDistributor(distributor)
-        instances.forEach { unifiedPushFunctions.registerApp(it) }
+        registerAllInstance()
     }
 
     /**
@@ -96,6 +105,10 @@ open class SelectDistributorDialogBuilder(
         dialog.show()
     }
 
+    open fun registerAllInstance() {
+        instances.forEach { unifiedPushFunctions.registerApp(it) }
+    }
+
     /**
      * Show a dialog if needed to ask user's distributor and request registration for all instances
      *
@@ -106,11 +119,25 @@ open class SelectDistributorDialogBuilder(
      *
      * Once a distributor is saved, calling this method will register again to the saved distributor.
      */
-    fun show() {
-        unifiedPushFunctions.getAckDistributor()?.let {
-            instances.forEach { unifiedPushFunctions.registerApp(it) }
-            return
+    fun run() {
+        // 1. If a distributor is already saved, use it and register again all instances
+        if (mayUseCurrent) {
+            unifiedPushFunctions.getAckDistributor()?.let {
+                registerAllInstance()
+                return
+            }
         }
+        // 2. Select
+        selectDistributor()
+    }
+
+    /**
+     * Select distributor.
+     *
+     * This can be used when the users want to change the distributor they
+     * want to use for the app.
+     */
+    open fun selectDistributor() {
         val distributors = unifiedPushFunctions.getDistributors()
         when (distributors.size) {
             0 -> onNoDistributorFound()

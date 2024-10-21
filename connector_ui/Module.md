@@ -17,7 +17,7 @@ dependencies {
 
 ## Use the dialog
 
-To use this dialog, you need to pass [`UnifiedPushFunctions`](org.unifiedpush.android.connector.ui.UnifiedPushFunctions) to the [`SelectDistributorDialogBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder], then call its [`show`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder.show] method:
+To use this dialog, you need to pass [`UnifiedPushFunctions`](org.unifiedpush.android.connector.ui.UnifiedPushFunctions) to the [`SelectDistributorDialogsBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder], then call its [`run`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder.run] method:
 - If there is no distributor, it will inform the user they need one.
 - If there is a single distributor, it will register to it.
 - If there are many distributors, it will open a dialog to ask the user which one to use.
@@ -33,14 +33,14 @@ Once a distributor is saved, calling this method will register again to the save
 ```kotlin
 import org.unifiedpush.android.connector.INSTANCE_DEFAULT
 import org.unifiedpush.android.connector.UnifiedPush
-import org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder
+import org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder
 import org.unifiedpush.android.connector.ui.UnifiedPushFunctions
 /* ... */
 
 // Options:
 // "instances" can be used to handle multiple registrations
 
-SelectDistributorDialogBuilder(
+SelectDistributorDialogsBuilder(
     context,
     listOf<String>(INSTANCE_DEFAULT),
     object : UnifiedPushFunctions {
@@ -56,7 +56,7 @@ SelectDistributorDialogBuilder(
         override fun saveDistributor(distributor: String) =
             UnifiedPush.saveDistributor(context, distributor)
     }
-).show()
+).run()
 ```
 
 <!-- END KOTLIN -->
@@ -69,7 +69,7 @@ SelectDistributorDialogBuilder(
 ```java
 import static org.unifiedpush.android.connector.ConstantsKt.INSTANCE_DEFAULT;
 import org.unifiedpush.android.connector.UnifiedPush;
-import org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder;
+import org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder;
 import org.unifiedpush.android.connector.ui.UnifiedPushFunctions;
 /* ... */
 
@@ -108,12 +108,12 @@ private class UPFunctions implements UnifiedPushFunctions {
 // Options:
 // "instances" can be used to handle multiple registrations
 
-    SelectDistributorDialogBuilder builder = new SelectDistributorDialogBuilder(
+    SelectDistributorDialogsBuilder builder = new SelectDistributorDialogsBuilder(
         this,
         List.of(INSTANCE_DEFAULT),
         new UPFunctions(this)
     );
-    builder.show();
+    builder.run();
 ```
 
 <!-- END JAVA -->
@@ -122,7 +122,7 @@ private class UPFunctions implements UnifiedPushFunctions {
 
 ## Customization
 
-It is possible to customize this dialog by extending [`SelectDistributorDialogBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder]:
+It is possible to customize this dialog by extending [`SelectDistributorDialogsBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder]:
 
 <div class="tabs">
 <input class="tabs_control hidden" type="radio" id="tabs-1-receiver-0" name="tabs-1" checked>
@@ -131,7 +131,7 @@ It is possible to customize this dialog by extending [`SelectDistributorDialogBu
 <!-- CONTENT KOTLIN -->
 
 ```kotlin
-SelectDistributorDialogBuilder(
+SelectDistributorDialogsBuilder(
     context,
     listOf<String>(INSTANCE_DEFAULT),
     object : UnifiedPushFunctions {/*...*/}
@@ -150,7 +150,7 @@ SelectDistributorDialogBuilder(
     override fun onManyDistributorsFound(distributors: List<String>) {
         // TODO
     }
-}.show()
+}.run()
 ```
 
 <!-- END KOTLIN -->
@@ -161,7 +161,7 @@ SelectDistributorDialogBuilder(
 <!-- CONTENT JAVA -->
 
 ```java
-private class MyDialogBuilder extends SelectDistributorDialogBuilder {
+private class MyDialogBuilder extends SelectDistributorDialogsBuilder {
         public MyDialogBuilder(@NonNull Context context, @NonNull List<String> instances, @NonNull UnifiedPushFunctions unifiedPushFunctions) {
             super(context, instances, unifiedPushFunctions);
         }
