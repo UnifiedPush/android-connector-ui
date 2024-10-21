@@ -1,7 +1,9 @@
 package org.unifiedpush.android.connector.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.text.SpannableString
 import android.text.method.LinkMovementMethod
@@ -18,6 +20,7 @@ private const val PREF_MASTER_DISTRIBUTOR_ACK = "distributor_ack"
  * Interface containing UnifiedPush functions
  */
 interface UnifiedPushFunctions {
+    fun tryUseDefaultDistributor(callback: (Boolean) -> Unit)
     fun getAckDistributor(): String?
     fun getDistributors(): List<String>
     fun registerApp(instance: String)
@@ -38,17 +41,74 @@ open class SelectDistributorDialogsBuilder(
 ) {
     /** List of instances to request registration for. */
     open var instances: List<String> = listOf("default")
+
     /**
      * Use saved distributor if available.
      *
      * Set to `true` if you wish to re-register your app if it is available.
      *
-     * Set to `false` if you wish to let the user change their distributor.
+     * Set to `false` if you wish to let the user change their distributor. It will still use the default
+     * distributor if [mayUseDefault] is `true`.
      */
     open var mayUseCurrent: Boolean = true
 
+    /**
+     * Use default distributor if available.
+     *
+     * Set to `true` if you wish to fallback to the default distributor if available.
+     *
+     * Set to `false` if you wish to let the user change their distributor.
+     */
+    open var mayUseDefault: Boolean = true
+
     /** Contains content of the different dialogs. */
     open var registrationDialogContent: RegistrationDialogContent = DefaultRegistrationDialogContent(context)
+
+    /**
+     * Whether the dialog with the [IntroDialog] should be shown to the user.
+     *
+     * Called only if [mayUseDefault] is `true`.
+     *
+     * @return By default, `true` if the deeplink "unifiedpush://link" may be open by more
+     * than one application, and the OS dialog request user choice
+     */
+    open fun shouldShowIntro(): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("unifiedpush://link")
+        }
+        val pm = context.packageManager
+        val resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        // return true if this is "android"
+        return resolveInfo?.activityInfo?.let {
+            Log.d(TAG, "Package=${it.packageName}")
+            it.packageName == "android"
+        } ?: false
+    }
+
+    open fun showIntro() {
+        val dialog = AlertDialog.Builder(context).apply {
+            setTitle(registrationDialogContent.introDialog.title)
+            val msg =
+                SpannableString(registrationDialogContent.introDialog.message)
+            Linkify.addLinks(msg, Linkify.WEB_URLS)
+            setMessage(msg)
+            setPositiveButton(registrationDialogContent.introDialog.okButton) { _, _ ->
+                tryUseDefault()
+            }
+            create()
+        }
+        dialog.show()
+    }
+
+    open fun tryUseDefault() {
+        unifiedPushFunctions.tryUseDefaultDistributor { success ->
+            if (success) {
+                registerAllInstance()
+            } else {
+                selectDistributorWithoutDefault()
+            }
+        }
+    }
 
     /**
      * Called when no distributor are found. By default, it shows a dialog with [RegistrationDialogContent.noDistributorDialog] content.
@@ -127,17 +187,31 @@ open class SelectDistributorDialogsBuilder(
                 return
             }
         }
-        // 2. Select
-        selectDistributor()
+        // 2. If we want to try the user's default
+        // It can be used when the user enable UnifiedPush for the first time,
+        // or when the main activity is started
+        if (mayUseDefault) {
+            // 2.a We inform the user they
+            if (shouldShowIntro()) {
+                showIntro()
+            } else {
+                tryUseDefault()
+            }
+        } else {
+            selectDistributorWithoutDefault()
+        }
     }
 
     /**
-     * Select distributor.
+     * Select distributor without trying to use the user's default one.
      *
      * This can be used when the users want to change the distributor they
      * want to use for the app.
+     *
+     * Run when [mayUseDefault] is `false` or when [UnifiedPushFunctions.tryUseDefaultDistributor]
+     * doesn't succeed.
      */
-    open fun selectDistributor() {
+    open fun selectDistributorWithoutDefault() {
         val distributors = unifiedPushFunctions.getDistributors()
         when (distributors.size) {
             0 -> onNoDistributorFound()
