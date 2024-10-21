@@ -20,10 +20,54 @@ private const val PREF_MASTER_DISTRIBUTOR_ACK = "distributor_ack"
  * Interface containing UnifiedPush functions
  */
 interface UnifiedPushFunctions {
+    /**
+     * Try to use default distributor.
+     *
+     * ```
+     * tryUseDefaultDistributor(callback: (Boolean) -> Unit) =
+     *             UnifiedPush.tryUseDefaultDistributor(context, callback)
+     * ```
+     */
     fun tryUseDefaultDistributor(callback: (Boolean) -> Unit)
+
+    /**
+     * Get acknowledged distributor.
+     *
+     * ```
+     * getAckDistributor(): String? =
+     *             UnifiedPush.getAckDistributor(context)
+     * ```
+     */
     fun getAckDistributor(): String?
+
+    /**
+     * Get list of installed distributors.
+     *
+     * ```
+     * getDistributors(): List<String> =
+     *             UnifiedPush.getDistributors(context, UnifiedPush.DEFAULT_FEATURES)
+     * ```
+     */
     fun getDistributors(): List<String>
+
+    /**
+     * Send a registration request to the distributor.
+     *
+     * ```
+     * registerApp(instance: String) =
+     *             UnifiedPush.registerApp(context, instance)
+     * ```
+     */
     fun registerApp(instance: String)
+
+    /**
+     * Save a distributor to use.
+     *
+     * ```
+     * saveDistributor(distributor: String) =
+     *             UnifiedPush.saveDistributor(context, distributor)
+     * ```
+     */
     fun saveDistributor(distributor: String)
 }
 
