@@ -24,16 +24,16 @@ data class DefaultRegistrationDialogContent(val context: Context) : Registration
 /** Defines content for the dialog if no distributor are installed. */
 interface NoDistributorDialog {
     /** Dialog title. */
-    val title: String
+    var title: String
 
     /** Dialog message. */
     var message: String
 
     /** Text on positive button */
-    val okButton: String
+    var okButton: String
 
     /** Text on negative button. */
-    val ignoreButton: String
+    var ignoreButton: String
 }
 
 /**
@@ -42,17 +42,17 @@ interface NoDistributorDialog {
  * @param context Context for fetching resources.
  */
 data class DefaultNoDistributorDialog(val context: Context) : NoDistributorDialog {
-    override val title = context.getString(R.string.unified_push_dialog_no_distributor_title)
-    override var message = context.getString(R.string.unified_push_dialog_no_distributor_message)
-    override val okButton = context.getString(android.R.string.ok)
-    override val ignoreButton =
-        context.getString(R.string.unified_push_dialog_no_distributor_negative)
+    override var title = context.getString(R.string.unifiedpush_dialog_no_distributor_title)
+    override var message = context.getString(R.string.unifiedpush_dialog_no_distributor_message)
+    override var okButton = context.getString(android.R.string.ok)
+    override var ignoreButton =
+        context.getString(R.string.unifiedpush_dialog_no_distributor_negative)
 }
 
 /** Defines content for the dialog if multiple distributors are installed. */
 interface ChooseDialog {
     /** Dialog title. */
-    val title: String
+    var title: String
 }
 
 /**
@@ -61,5 +61,5 @@ interface ChooseDialog {
  * @param context Context for fetching resources.
  */
 data class DefaultChooseDialog(val context: Context) : ChooseDialog {
-    override val title = context.getString(R.string.unified_push_dialog_choose_title)
+    override var title = context.getString(R.string.unifiedpush_dialog_choose_title)
 }
