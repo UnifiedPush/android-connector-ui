@@ -56,9 +56,13 @@ var builder = SelectDistributorDialogsBuilder(
             UnifiedPush.saveDistributor(context, distributor)
     }
 )
-// You can set multiple instance, choose to try to use current or default distributor
 builder.apply {
-    instances = listOf("a","b")
+    // If you use multiple registrations for your application
+    instances = listOf("registration1","registration2")
+    // If you are calling the function to let the user changing their distributor
+    // We should not use default nor current
+    // /!\ Keep them true if you subscribe to UnifiedPush for the first time, or want to do a
+    // basic re-registration.
     mayUseCurrent = false
     mayUseDefault = false
 }
@@ -121,8 +125,12 @@ private class UPFunctions implements UnifiedPushFunctions {
         this,
         new UPFunctions(this)
     );
-    // You can set multiple instance, choose to try to use current or default distributor
-    builder.setInstances(List.of("a", "b"));
+    // If you use multiple registrations for your application
+    builder.setInstances(List.of("registration1", "registration2"));
+    // If you are calling the function to let the user changing their distributor
+    // We should not use default nor current
+    // /!\ Keep them true if you subscribe to UnifiedPush for the first time, or want to do a
+    // basic re-registration.
     builder.setMayUseCurrent(false);
     builder.setMayUseDefault(false);
     builder.run();
@@ -147,13 +155,6 @@ object : SelectDistributorDialogsBuilder(
     context,
     object : UnifiedPushFunctions {/*...*/}
 ){
-    // If the app use multiple registrations
-    override var instances = listOf<String>("registration1", "registration2")
-
-    // If the user wants to change distributor, we do not use default nor current
-    override var mayUseDefault = false
-    override var mayUseCurrent = false
-
     // See RegistrationDialogContent doc.
     override var registrationDialogContent = MyDialogContent
 
@@ -183,14 +184,7 @@ private class MyDialogBuilder extends SelectDistributorDialogsBuilder {
         public MyDialogBuilder(@NonNull Context context, @NonNull List<String> instances, @NonNull UnifiedPushFunctions unifiedPushFunctions) {
             super(context, instances, unifiedPushFunctions);
         }
-        // If the app use multiple registrations
-        List<String> instances = List.of("registration1", "registration2");
-
-        // If the user wants to change distributor, we do not use default nor current
-        Boolean mayUseDefault = false;
-        Boolean mayUseCurrent = false;
-
-        // See https://codeberg.org/UnifiedPush/android-connector-ui/src/branch/main/connector_ui/src/main/java/org/unifiedpush/android/connector/ui/RegistrationDialogContent.kt
+        // See RegistrationDialogContent doc.
         RegistrationDialogContent registrationDialogContent = MyContent;
         @Override
         public void onNoDistributorFound() {
