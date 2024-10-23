@@ -17,7 +17,7 @@ dependencies {
 
 ## Use the dialog
 
-To use this dialog, you need to pass [`UnifiedPushFunctions`](org.unifiedpush.android.connector.ui.UnifiedPushFunctions) to the [`SelectDistributorDialogBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder], then call its [`show`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder.show] method:
+To use this dialog, you need to pass [`UnifiedPushFunctions`](org.unifiedpush.android.connector.ui.UnifiedPushFunctions) to the [`SelectDistributorDialogsBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder], then call its [`run`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder.run] method:
 - If there is no distributor, it will inform the user they need one.
 - If there is a single distributor, it will register to it.
 - If there are many distributors, it will open a dialog to ask the user which one to use.
@@ -33,30 +33,40 @@ Once a distributor is saved, calling this method will register again to the save
 ```kotlin
 import org.unifiedpush.android.connector.INSTANCE_DEFAULT
 import org.unifiedpush.android.connector.UnifiedPush
-import org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder
+import org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder
 import org.unifiedpush.android.connector.ui.UnifiedPushFunctions
 /* ... */
 
-// Options:
-// "instances" can be used to handle multiple registrations
-
-SelectDistributorDialogBuilder(
+var builder = SelectDistributorDialogsBuilder(
     context,
-    listOf<String>(INSTANCE_DEFAULT),
     object : UnifiedPushFunctions {
+        override fun tryUseDefaultDistributor(callback: (Boolean) -> Unit) =
+            UnifiedPush.tryUseDefaultDistributor(context, callback)
+
         override fun getAckDistributor(): String? =
             UnifiedPush.getAckDistributor(context)
 
         override fun getDistributors(): List<String> =
-            UnifiedPush.getDistributors(context, UnifiedPush.DEFAULT_FEATURES)
+            UnifiedPush.getDistributors(context)
 
         override fun registerApp(instance: String) =
-            UnifiedPush.registerApp(context, instance, UnifiedPush.DEFAULT_FEATURES)
+            UnifiedPush.registerApp(context, instance)
 
         override fun saveDistributor(distributor: String) =
             UnifiedPush.saveDistributor(context, distributor)
     }
-).show()
+)
+builder.apply {
+    // If you use multiple registrations for your application
+    instances = listOf("registration1","registration2")
+    // If you are calling the function to let the user changing their distributor
+    // We should not use default nor current
+    // /!\ Keep them true if you subscribe to UnifiedPush for the first time, or want to do a
+    // basic re-registration.
+    mayUseCurrent = false
+    mayUseDefault = false
+}
+builder.run()
 ```
 
 <!-- END KOTLIN -->
@@ -69,8 +79,9 @@ SelectDistributorDialogBuilder(
 ```java
 import static org.unifiedpush.android.connector.ConstantsKt.INSTANCE_DEFAULT;
 import org.unifiedpush.android.connector.UnifiedPush;
-import org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder;
+import org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder;
 import org.unifiedpush.android.connector.ui.UnifiedPushFunctions;
+import kotlin.jvm.functions.Function1;
 /* ... */
 
 // First you need to create a class that implements UnifiedPushFunctions:
@@ -79,6 +90,12 @@ private class UPFunctions implements UnifiedPushFunctions {
     public UPFunctions(Context context) {
         this.context = context;
     }
+    @Override
+    public void tryUseDefaultDistributor(@NonNull Function1<? super Boolean, Unit> callback) {
+        UnifiedPush.tryUseDefaultDistributor(context, callback);
+
+    }
+
     @Nullable
     @Override
     public String getAckDistributor() {
@@ -88,12 +105,12 @@ private class UPFunctions implements UnifiedPushFunctions {
     @NonNull
     @Override
     public List<String> getDistributors() {
-        return UnifiedPush.getDistributors(context, UnifiedPush.getDEFAULT_FEATURES());
+        return UnifiedPush.getDistributors(context);
     }
 
     @Override
     public void registerApp(@NonNull String instance) {
-        UnifiedPush.registerApp(context, instance, UnifiedPush.getDEFAULT_FEATURES(), "MyApp");
+        UnifiedPush.registerApp(context, instance, "MyApp", VAPIDKey);
     }
 
     @Override
@@ -104,16 +121,19 @@ private class UPFunctions implements UnifiedPushFunctions {
 
 /* ... */
 
-// Then you can use the dialog in a function:
-// Options:
-// "instances" can be used to handle multiple registrations
-
-    SelectDistributorDialogBuilder builder = new SelectDistributorDialogBuilder(
+    SelectDistributorDialogsBuilder builder = new SelectDistributorDialogsBuilder(
         this,
-        List.of(INSTANCE_DEFAULT),
         new UPFunctions(this)
     );
-    builder.show();
+    // If you use multiple registrations for your application
+    builder.setInstances(List.of("registration1", "registration2"));
+    // If you are calling the function to let the user changing their distributor
+    // We should not use default nor current
+    // /!\ Keep them true if you subscribe to UnifiedPush for the first time, or want to do a
+    // basic re-registration.
+    builder.setMayUseCurrent(false);
+    builder.setMayUseDefault(false);
+    builder.run();
 ```
 
 <!-- END JAVA -->
@@ -122,7 +142,7 @@ private class UPFunctions implements UnifiedPushFunctions {
 
 ## Customization
 
-It is possible to customize this dialog by extending [`SelectDistributorDialogBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogBuilder]:
+It is possible to customize this dialog by extending [`SelectDistributorDialogsBuilder`][org.unifiedpush.android.connector.ui.SelectDistributorDialogsBuilder]:
 
 <div class="tabs">
 <input class="tabs_control hidden" type="radio" id="tabs-1-receiver-0" name="tabs-1" checked>
@@ -131,12 +151,11 @@ It is possible to customize this dialog by extending [`SelectDistributorDialogBu
 <!-- CONTENT KOTLIN -->
 
 ```kotlin
-SelectDistributorDialogBuilder(
+object : SelectDistributorDialogsBuilder(
     context,
-    listOf<String>(INSTANCE_DEFAULT),
     object : UnifiedPushFunctions {/*...*/}
 ){
-    // See https://codeberg.org/UnifiedPush/android-connector-ui/src/branch/main/connector_ui/src/main/java/org/unifiedpush/android/connector/ui/RegistrationDialogContent.kt
+    // See RegistrationDialogContent doc.
     override var registrationDialogContent = MyDialogContent
 
     override fun onNoDistributorFound() {
@@ -150,7 +169,7 @@ SelectDistributorDialogBuilder(
     override fun onManyDistributorsFound(distributors: List<String>) {
         // TODO
     }
-}.show()
+}.run()
 ```
 
 <!-- END KOTLIN -->
@@ -161,11 +180,11 @@ SelectDistributorDialogBuilder(
 <!-- CONTENT JAVA -->
 
 ```java
-private class MyDialogBuilder extends SelectDistributorDialogBuilder {
+private class MyDialogBuilder extends SelectDistributorDialogsBuilder {
         public MyDialogBuilder(@NonNull Context context, @NonNull List<String> instances, @NonNull UnifiedPushFunctions unifiedPushFunctions) {
             super(context, instances, unifiedPushFunctions);
         }
-        // See https://codeberg.org/UnifiedPush/android-connector-ui/src/branch/main/connector_ui/src/main/java/org/unifiedpush/android/connector/ui/RegistrationDialogContent.kt
+        // See RegistrationDialogContent doc.
         RegistrationDialogContent registrationDialogContent = MyContent;
         @Override
         public void onNoDistributorFound() {
