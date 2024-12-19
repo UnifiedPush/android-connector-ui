@@ -24,8 +24,8 @@ SelectDistributorDialogBuilder(
         override fun getDistributors(): List<String> =
             UnifiedPush.getDistributors(this@MainActivity, features)
 
-        override fun registerApp(instance: String) =
-            UnifiedPush.registerApp(this@MainActivity, instance, features)
+        override fun register(instance: String) =
+            UnifiedPush.register(this@MainActivity, instance, features)
 
         override fun saveDistributor(distributor: String) =
             UnifiedPush.saveDistributor(this@MainActivity, distributor)
@@ -46,8 +46,8 @@ SelectDistributorDialogBuilder(
         override fun getDistributors(): List<String> =
             UnifiedPush.getDistributors(this@MainActivity, features)
 
-        override fun registerApp(instance: String) =
-            UnifiedPush.registerApp(this@MainActivity, instance, features)
+        override fun register(instance: String) =
+            UnifiedPush.register(this@MainActivity, instance, features)
 
         override fun saveDistributor(distributor: String) =
             UnifiedPush.saveDistributor(this@MainActivity, distributor)

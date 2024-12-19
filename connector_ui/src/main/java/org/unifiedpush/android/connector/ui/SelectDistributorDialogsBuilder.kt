@@ -54,11 +54,11 @@ interface UnifiedPushFunctions {
      * Send a registration request to the distributor.
      *
      * ```
-     * registerApp(instance: String) =
-     *             UnifiedPush.registerApp(context, instance)
+     * register(instance: String) =
+     *             UnifiedPush.register(context, instance)
      * ```
      */
-    fun registerApp(instance: String)
+    fun register(instance: String)
 
     /**
      * Save a distributor to use.
@@ -183,7 +183,7 @@ open class SelectDistributorDialogsBuilder(
     }
 
     /**
-     * Called when a distributor is selected. By default, it calls [UnifiedPushFunctions.saveDistributor] then [UnifiedPushFunctions.registerApp] for each instance.
+     * Called when a distributor is selected. By default, it calls [UnifiedPushFunctions.saveDistributor] then [UnifiedPushFunctions.register] for each instance.
      */
     open fun onDistributorSelected(distributor: String) {
         Log.d(TAG, "saving: $distributor")
@@ -210,7 +210,7 @@ open class SelectDistributorDialogsBuilder(
     }
 
     open fun registerAllInstance() {
-        instances.forEach { unifiedPushFunctions.registerApp(it) }
+        instances.forEach { unifiedPushFunctions.register(it) }
     }
 
     /**

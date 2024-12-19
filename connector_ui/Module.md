@@ -49,8 +49,8 @@ var builder = SelectDistributorDialogsBuilder(
         override fun getDistributors(): List<String> =
             UnifiedPush.getDistributors(context)
 
-        override fun registerApp(instance: String) =
-            UnifiedPush.registerApp(context, instance)
+        override fun register(instance: String) =
+            UnifiedPush.register(context, instance)
 
         override fun saveDistributor(distributor: String) =
             UnifiedPush.saveDistributor(context, distributor)
@@ -109,8 +109,8 @@ private class UPFunctions implements UnifiedPushFunctions {
     }
 
     @Override
-    public void registerApp(@NonNull String instance) {
-        UnifiedPush.registerApp(context, instance, "MyApp", VAPIDKey);
+    public void register(@NonNull String instance) {
+        UnifiedPush.register(context, instance, "MyApp", VAPIDKey);
     }
 
     @Override
